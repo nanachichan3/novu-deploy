@@ -57,6 +57,12 @@ services:
       IS_NEW_MESSAGES_API_RESPONSE_ENABLED: ${IS_NEW_MESSAGES_API_RESPONSE_ENABLED}
       IS_V2_ENABLED: ${IS_V2_ENABLED}
       IS_SELF_HOSTED: "true"
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:3000/v1/health-check || exit 0"]
+      interval: 30s
+      timeout: 10s
+      retries: 30
+      start_period: 120s
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.novu-api.rule=Host(`api.novu.qed.quest`)"
@@ -121,6 +127,12 @@ services:
       NEW_RELIC_ENABLED: ${NEW_RELIC_ENABLED}
       NEW_RELIC_APP_NAME: ${NEW_RELIC_APP_NAME}
       NEW_RELIC_LICENSE_KEY: ${NEW_RELIC_LICENSE_KEY}
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:3002 || exit 0"]
+      interval: 30s
+      timeout: 10s
+      retries: 30
+      start_period: 120s
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.novu-ws.rule=Host(`ws.novu.qed.quest`)"
@@ -143,6 +155,12 @@ services:
       VITE_SELF_HOSTED: "true"
       VITE_WEBSOCKET_HOSTNAME: https://ws.novu.qed.quest
       VITE_LEGACY_DASHBOARD_URL: https://novu.qed.quest
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:4000 || exit 0"]
+      interval: 30s
+      timeout: 10s
+      retries: 30
+      start_period: 120s
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.novu.rule=Host(`novu.qed.quest`)"
