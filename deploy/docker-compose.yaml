@@ -148,6 +148,21 @@ services:
     networks:
       - coolify
 
+  mongo-express:
+    image: mongo-express:latest
+    container_name: novu_mongo_express
+    restart: unless-stopped
+    environment:
+      ME_CONFIG_MONGODB_URL: "mongodb://novuadmin:58409498de9dfc6ec1da9ef20293a798@mongodb:27017/novu-db?authSource=admin"
+    networks:
+      - coolify
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.mongo-express.rule=Host(`mongo-express.novu.qed.quest`)"
+      - "traefik.http.services.mongo-express.loadbalancer.server.port=8081"
+      - "traefik.http.routers.mongo-express.tls=true"
+      - "traefik.http.routers.mongo-express.tls.certresolver=letsencrypt"
+
 volumes:
   mongodb_data:
 
