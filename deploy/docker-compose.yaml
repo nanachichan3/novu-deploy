@@ -154,3 +154,34 @@ volumes:
 networks:
   coolify:
     external: true
+
+  mongo-init:
+    image: mongo:8.0.17
+    container_name: novu_mongo_init
+    restart: "no"
+    command: ["mongosh", "mongodb://novuadmin:58409498de9dfc6ec1da9ef20293a798@mongodb:27017/novu-db?authSource=admin", "--eval", """
+    db = db.getSiblingDB('novu-db');
+    org = db.organizations.findOne();
+    if (!org) {
+      print('Creating organization...');
+      result = db.organizations.insertOne({
+        name: 'Default Organization',
+        apiServiceLevel: 'free',
+        isTrial: false,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      });
+      org = { _id: result.insertedId };
+      print('Created org: ' + org._id);
+    } else {
+      print('Found org: ' + org._id);
+    }
+    users = db.users.find({ organizationId: { $exists: false } }).toArray();
+    print('Found ' + users.length + ' users without org');
+    users.forEach(function(user) {
+      print('Updating user ' + user._id + ' to join org ' + org._id);
+      db.users.updateOne({ _id: user._id }, { $set: { organizationId: org._id } });
+    });
+    print('Done!');
+    """]    networks:
+      - coolify
