@@ -4,16 +4,23 @@ Self-hosted Novu notification infrastructure for the AI Startup Factory.
 
 ## Services
 
-- **mongodb** — Primary database
-- **redis** — Caching & queues
-- **api** — Novu REST API (port 3000)
-- **worker** — Background job processor
-- **ws** — WebSocket server (port 3002)
-- **dashboard** — Admin UI (port 4000)
+| Service | Image | Purpose |
+|---------|-------|---------|
+| mongodb | mongo:8.0.17 | Primary database |
+| redis | redis:alpine | Caching & queues |
+| api | ghcr.io/novuhq/novu/api:3.14.0 | REST API |
+| worker | ghcr.io/novuhq/novu/worker:3.14.0 | Background jobs |
+| ws | ghcr.io/novuhq/novu/ws:3.14.0 | WebSocket server |
+| dashboard | ghcr.io/novuhq/novu/dashboard:3.14.0 | Admin UI (port 4000) |
+
+## Access
+
+- **Dashboard:** https://novu.qed.quest
+- **API:** Internal only (port 3000)
 
 ## Deployment
 
-Deployed on Coolify via this repo.
+Deployed on Coolify — `nanachichan3/novu-deploy` repo, `deploy/` directory.
 
 ## Docs
 

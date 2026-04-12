@@ -14,6 +14,8 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - novu_internal
 
   mongodb:
     image: mongo:8.0.17
@@ -35,6 +37,8 @@ services:
       timeout: 5s
       retries: 5
       start_period: 20s
+    networks:
+      - novu_internal
 
   api:
     image: "ghcr.io/novuhq/novu/api:3.14.0"
@@ -84,8 +88,8 @@ services:
       IS_NEW_MESSAGES_API_RESPONSE_ENABLED: ${IS_NEW_MESSAGES_API_RESPONSE_ENABLED}
       IS_V2_ENABLED: ${IS_V2_ENABLED}
       IS_SELF_HOSTED: "true"
-    ports:
-      - "${API_PORT}:${API_PORT}"
+    networks:
+      - novu_internal
 
   worker:
     image: "ghcr.io/novuhq/novu/worker:3.14.0"
@@ -128,6 +132,8 @@ services:
       API_ROOT_URL: http://api:${API_PORT}
       IS_EMAIL_INLINE_CSS_DISABLED: ${IS_EMAIL_INLINE_CSS_DISABLED}
       IS_USE_MERGED_DIGEST_ID_ENABLED: ${IS_USE_MERGED_DIGEST_ID_ENABLED}
+    networks:
+      - novu_internal
 
   ws:
     image: "ghcr.io/novuhq/novu/ws:3.14.0"
@@ -156,8 +162,8 @@ services:
       NEW_RELIC_ENABLED: ${NEW_RELIC_ENABLED}
       NEW_RELIC_APP_NAME: ${NEW_RELIC_APP_NAME}
       NEW_RELIC_LICENSE_KEY: ${NEW_RELIC_LICENSE_KEY}
-    ports:
-      - "${WS_PORT}:${WS_PORT}"
+    networks:
+      - novu_internal
 
   dashboard:
     image: "ghcr.io/novuhq/novu/dashboard:3.14.0"
@@ -178,8 +184,21 @@ services:
       VITE_SELF_HOSTED: "true"
       VITE_WEBSOCKET_HOSTNAME: ${VITE_WEBSOCKET_HOSTNAME}
       VITE_LEGACY_DASHBOARD_URL: ${VITE_LEGACY_DASHBOARD_URL}
-    ports:
-      - "4000:4000"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.novu.rule=Host(`novu.qed.quest`)"
+      - "traefik.http.services.novu.loadbalancer.server.port=4000"
+      - "traefik.http.routers.novu.tls=true"
+      - "traefik.http.routers.novu.tls.certresolver=letsencrypt"
+    networks:
+      - novu_internal
+      - coolify
 
 volumes:
   mongodb_data:
+
+networks:
+  novu_internal:
+    driver: bridge
+  coolify:
+    external: true
