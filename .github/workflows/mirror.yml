@@ -1,0 +1,30 @@
+name: Mirror GHCR Images to Docker Hub
+
+on:
+  workflow_dispatch:
+
+jobs:
+  mirror:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Pull images from GHCR
+        run: |
+          for image in api worker ws dashboard; do
+            docker pull ghcr.io/novuhq/novu/${image}:3.14.0
+            docker tag ghcr.io/novuhq/novu/${image}:3.14.0 ghcr.io/nanachichan3/novu/${image}:3.14.0
+          done
+
+      - name: Set public visibility
+        run: |
+          for image in api worker ws dashboard; do
+            docker buildx imagetools create \
+              --tag ghcr.io/nanachichan3/novu/${image}:3.14.0 \
+              ghcr.io/nanachichan3/novu/${image}:3.14.0
+          done

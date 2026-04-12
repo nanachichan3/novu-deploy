@@ -32,11 +32,11 @@ services:
     volumes:
       - mongodb_data:/data/db
     healthcheck:
-      test: ["CMD", "mongosh", "--quiet", "--username", "${MONGO_INITDB_ROOT_USERNAME}", "--password", "${MONGO_INITDB_ROOT_PASSWORD}", "--eval", "db.adminCommand('ping').ok"]
-      interval: 20s
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping').ok"]
+      interval: 10s
       timeout: 5s
-      retries: 5
-      start_period: 20s
+      retries: 6
+      start_period: 30s
     networks:
       - novu_internal
 
@@ -49,11 +49,6 @@ services:
         condition: service_healthy
     container_name: novu_api
     restart: unless-stopped
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "50m"
-        max-file: "5"
     environment:
       NODE_ENV: ${NODE_ENV}
       API_ROOT_URL: ${API_ROOT_URL}
@@ -81,7 +76,6 @@ services:
       NEW_RELIC_ENABLED: ${NEW_RELIC_ENABLED}
       NEW_RELIC_APP_NAME: ${NEW_RELIC_APP_NAME}
       NEW_RELIC_LICENSE_KEY: ${NEW_RELIC_LICENSE_KEY}
-      API_CONTEXT_PATH: ""
       MONGO_AUTO_CREATE_INDEXES: ${MONGO_AUTO_CREATE_INDEXES}
       IS_API_IDEMPOTENCY_ENABLED: ${IS_API_IDEMPOTENCY_ENABLED}
       IS_API_RATE_LIMITING_ENABLED: ${IS_API_RATE_LIMITING_ENABLED}
@@ -100,11 +94,6 @@ services:
         condition: service_healthy
     container_name: novu_worker
     restart: unless-stopped
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "50m"
-        max-file: "5"
     environment:
       NODE_ENV: ${NODE_ENV}
       PORT: 3004
@@ -129,7 +118,7 @@ services:
       NEW_RELIC_LICENSE_KEY: ${NEW_RELIC_LICENSE_KEY}
       BROADCAST_QUEUE_CHUNK_SIZE: ${BROADCAST_QUEUE_CHUNK_SIZE}
       MULTICAST_QUEUE_CHUNK_SIZE: ${MULTICAST_QUEUE_CHUNK_SIZE}
-      API_ROOT_URL: http://api:${API_PORT}
+      API_ROOT_URL: http://api:3000
       IS_EMAIL_INLINE_CSS_DISABLED: ${IS_EMAIL_INLINE_CSS_DISABLED}
       IS_USE_MERGED_DIGEST_ID_ENABLED: ${IS_USE_MERGED_DIGEST_ID_ENABLED}
     networks:
@@ -144,11 +133,6 @@ services:
         condition: service_healthy
     container_name: novu_ws
     restart: unless-stopped
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "50m"
-        max-file: "5"
     environment:
       PORT: ${WS_PORT}
       NODE_ENV: ${NODE_ENV}
@@ -158,7 +142,6 @@ services:
       REDIS_PORT: ${REDIS_PORT}
       REDIS_PASSWORD: ${REDIS_PASSWORD}
       JWT_SECRET: ${JWT_SECRET}
-      WS_CONTEXT_PATH: ""
       NEW_RELIC_ENABLED: ${NEW_RELIC_ENABLED}
       NEW_RELIC_APP_NAME: ${NEW_RELIC_APP_NAME}
       NEW_RELIC_LICENSE_KEY: ${NEW_RELIC_LICENSE_KEY}
@@ -174,11 +157,6 @@ services:
         condition: service_healthy
     container_name: novu_dashboard
     restart: unless-stopped
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "50m"
-        max-file: "5"
     environment:
       VITE_API_HOSTNAME: ${VITE_API_HOSTNAME}
       VITE_SELF_HOSTED: "true"
