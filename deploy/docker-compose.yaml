@@ -57,6 +57,12 @@ services:
       IS_NEW_MESSAGES_API_RESPONSE_ENABLED: ${IS_NEW_MESSAGES_API_RESPONSE_ENABLED}
       IS_V2_ENABLED: ${IS_V2_ENABLED}
       IS_SELF_HOSTED: "true"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.novu-api.rule=Host(`api.novu.qed.quest`)"
+      - "traefik.http.services.novu-api.loadbalancer.server.port=3000"
+      - "traefik.http.routers.novu-api.tls=true"
+      - "traefik.http.routers.novu-api.tls.certresolver=letsencrypt"
     networks:
       - novu_internal
       - coolify
@@ -115,6 +121,12 @@ services:
       NEW_RELIC_ENABLED: ${NEW_RELIC_ENABLED}
       NEW_RELIC_APP_NAME: ${NEW_RELIC_APP_NAME}
       NEW_RELIC_LICENSE_KEY: ${NEW_RELIC_LICENSE_KEY}
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.novu-ws.rule=Host(`ws.novu.qed.quest`)"
+      - "traefik.http.services.novu-ws.loadbalancer.server.port=3002"
+      - "traefik.http.routers.novu-ws.tls=true"
+      - "traefik.http.routers.novu-ws.tls.certresolver=letsencrypt"
     networks:
       - novu_internal
       - coolify
