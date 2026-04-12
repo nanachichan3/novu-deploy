@@ -20,7 +20,7 @@ services:
       - coolify
 
   api:
-    image: "ghcr.io/novuhq/novu/api:v3.12.0"
+    image: "ghcr.io/novuhq/novu/api:3.14.0"
     depends_on:
       - mongodb
       - redis
@@ -71,7 +71,7 @@ services:
       - coolify
 
   worker:
-    image: "ghcr.io/novuhq/novu/worker:v3.12.0"
+    image: "ghcr.io/novuhq/novu/worker:3.14.0"
     depends_on:
       - mongodb
       - redis
@@ -106,7 +106,7 @@ services:
       - coolify
 
   ws:
-    image: "ghcr.io/novuhq/novu/ws:v3.12.0"
+    image: "ghcr.io/novuhq/novu/ws:3.14.0"
     depends_on:
       - mongodb
       - redis
@@ -128,7 +128,7 @@ services:
       - coolify
 
   dashboard:
-    image: "ghcr.io/novuhq/novu/dashboard:v3.12.0"
+    image: "ghcr.io/novuhq/novu/dashboard:3.14.0"
     depends_on:
       - api
       - worker
