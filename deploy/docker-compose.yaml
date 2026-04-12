@@ -5,7 +5,7 @@ services:
     container_name: novu_redis
     restart: unless-stopped
     networks:
-      - novu_internal
+      - coolify
 
   mongodb:
     image: mongo:8.0.17
@@ -17,7 +17,7 @@ services:
     volumes:
       - mongodb_data:/data/db
     networks:
-      - novu_internal
+      - coolify
 
   api:
     image: "ghcr.io/novuhq/novu/api:3.14.0"
@@ -68,7 +68,6 @@ services:
       - "traefik.http.routers.novu-api.tls=true"
       - "traefik.http.routers.novu-api.tls.certresolver=letsencrypt"
     networks:
-      - novu_internal
       - coolify
 
   worker:
@@ -104,7 +103,7 @@ services:
       IS_EMAIL_INLINE_CSS_DISABLED: "false"
       IS_USE_MERGED_DIGEST_ID_ENABLED: "false"
     networks:
-      - novu_internal
+      - coolify
 
   ws:
     image: "ghcr.io/novuhq/novu/ws:3.14.0"
@@ -126,7 +125,7 @@ services:
       NEW_RELIC_APP_NAME: novu-ws
       NEW_RELIC_LICENSE_KEY: ""
     networks:
-      - novu_internal
+      - coolify
 
   dashboard:
     image: "ghcr.io/novuhq/novu/dashboard:3.14.0"
@@ -147,14 +146,11 @@ services:
       - "traefik.http.routers.novu.tls=true"
       - "traefik.http.routers.novu.tls.certresolver=letsencrypt"
     networks:
-      - novu_internal
       - coolify
 
 volumes:
   mongodb_data:
 
 networks:
-  novu_internal:
-    driver: bridge
   coolify:
     external: true
