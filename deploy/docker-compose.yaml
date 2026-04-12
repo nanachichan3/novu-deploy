@@ -4,11 +4,6 @@ services:
     image: "redis:alpine"
     container_name: novu_redis
     restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
     networks:
       - novu_internal
 
@@ -21,22 +16,14 @@ services:
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
     volumes:
       - mongodb_data:/data/db
-    healthcheck:
-      test: ["CMD", "mongosh", "--username", "$${MONGO_INITDB_ROOT_USERNAME}", "--password", "$${MONGO_INITDB_ROOT_PASSWORD}", "--authenticationDatabase", "admin", "--eval", "db.adminCommand('ping').ok"]
-      interval: 10s
-      timeout: 5s
-      retries: 12
-      start_period: 60s
     networks:
       - novu_internal
 
   api:
     image: "ghcr.io/novuhq/novu/api:3.14.0"
     depends_on:
-      mongodb:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
+      - mongodb
+      - redis
     container_name: novu_api
     restart: unless-stopped
     environment:
@@ -76,10 +63,8 @@ services:
   worker:
     image: "ghcr.io/novuhq/novu/worker:3.14.0"
     depends_on:
-      mongodb:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
+      - mongodb
+      - redis
     container_name: novu_worker
     restart: unless-stopped
     environment:
@@ -113,10 +98,8 @@ services:
   ws:
     image: "ghcr.io/novuhq/novu/ws:3.14.0"
     depends_on:
-      mongodb:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
+      - mongodb
+      - redis
     container_name: novu_ws
     restart: unless-stopped
     environment:
@@ -137,10 +120,8 @@ services:
   dashboard:
     image: "ghcr.io/novuhq/novu/dashboard:3.14.0"
     depends_on:
-      api:
-        condition: service_healthy
-      worker:
-        condition: service_healthy
+      - api
+      - worker
     container_name: novu_dashboard
     restart: unless-stopped
     environment:
