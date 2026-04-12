@@ -26,8 +26,6 @@ services:
       - redis
     container_name: novu_api
     restart: unless-stopped
-    ports:
-      - "3000:3000"
     environment:
       NODE_ENV: ${NODE_ENV}
       API_ROOT_URL: ${API_ROOT_URL}
@@ -105,8 +103,6 @@ services:
       - redis
     container_name: novu_ws
     restart: unless-stopped
-    ports:
-      - "3002:3002"
     environment:
       PORT: 3002
       NODE_ENV: ${NODE_ENV}
