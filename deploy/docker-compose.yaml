@@ -11,8 +11,6 @@ services:
     image: mongo:8.0.17
     container_name: novu_mongodb
     restart: unless-stopped
-    ports:
-      - "27017:27017"
     environment:
       MONGO_INITDB_ROOT_USERNAME: novuadmin
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD}
