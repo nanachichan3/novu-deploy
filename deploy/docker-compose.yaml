@@ -1,64 +1,55 @@
 name: novu
 services:
-  redis:
-    image: "redis:alpine"
-    container_name: novu_redis
-    restart: unless-stopped
-    networks:
-      - novu_internal
-
-  mongodb:
-    image: mongo:8.0.17
-    container_name: novu_mongodb
-    restart: unless-stopped
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
-      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
-    volumes:
-      - mongodb_data:/data/db
-    networks:
-      - novu_internal
-
   api:
     image: "ghcr.io/novuhq/novu/api:3.14.0"
     depends_on:
       mongodb:
-        condition: service_started
+        condition: service_healthy
       redis:
-        condition: service_started
+        condition: service_healthy
     container_name: novu_api
     restart: unless-stopped
     environment:
-      NODE_ENV: ${NODE_ENV}
+      NODE_ENV: production
       API_ROOT_URL: ${API_ROOT_URL}
       PORT: 3000
       FRONT_BASE_URL: ${FRONT_BASE_URL}
       MONGO_URL: ${MONGO_URL}
-      MONGO_MIN_POOL_SIZE: ${MONGO_MIN_POOL_SIZE}
-      MONGO_MAX_POOL_SIZE: ${MONGO_MAX_POOL_SIZE}
+      MONGO_MIN_POOL_SIZE: "1"
+      MONGO_MAX_POOL_SIZE: "10"
       REDIS_HOST: ${REDIS_HOST}
-      REDIS_PORT: ${REDIS_PORT}
-      REDIS_PASSWORD: ${REDIS_PASSWORD}
-      REDIS_DB_INDEX: 2
-      S3_LOCAL_STACK: ${S3_LOCAL_STACK}
-      S3_BUCKET_NAME: ${S3_BUCKET_NAME}
-      S3_REGION: ${S3_REGION}
-      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
-      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      REDIS_PORT: "6379"
+      REDIS_PASSWORD: ""
+      REDIS_DB_INDEX: "2"
+      S3_LOCAL_STACK: "false"
+      S3_BUCKET_NAME: "novu-db"
+      S3_REGION: "us-east-1"
+      AWS_ACCESS_KEY_ID: ""
+      AWS_SECRET_ACCESS_KEY: ""
       JWT_SECRET: ${JWT_SECRET}
       STORE_ENCRYPTION_KEY: ${STORE_ENCRYPTION_KEY}
       NOVU_SECRET_KEY: ${NOVU_SECRET_KEY}
-      SUBSCRIBER_WIDGET_JWT_EXPIRATION_TIME: ${SUBSCRIBER_WIDGET_JWT_EXPIRATION_TIME}
-      SENTRY_DSN: ${SENTRY_DSN}
-      NEW_RELIC_ENABLED: ${NEW_RELIC_ENABLED}
-      NEW_RELIC_APP_NAME: ${NEW_RELIC_APP_NAME}
-      NEW_RELIC_LICENSE_KEY: ${NEW_RELIC_LICENSE_KEY}
-      MONGO_AUTO_CREATE_INDEXES: ${MONGO_AUTO_CREATE_INDEXES}
-      IS_API_IDEMPOTENCY_ENABLED: ${IS_API_IDEMPOTENCY_ENABLED}
-      IS_API_RATE_LIMITING_ENABLED: ${IS_API_RATE_LIMITING_ENABLED}
-      IS_NEW_MESSAGES_API_RESPONSE_ENABLED: ${IS_NEW_MESSAGES_API_RESPONSE_ENABLED}
-      IS_V2_ENABLED: ${IS_V2_ENABLED}
+      SUBSCRIBER_WIDGET_JWT_EXPIRATION_TIME: "15d"
+      SENTRY_DSN: ""
+      NEW_RELIC_ENABLED: "false"
+      NEW_RELIC_APP_NAME: "novu-api"
+      NEW_RELIC_LICENSE_KEY: ""
+      MONGO_AUTO_CREATE_INDEXES: "true"
+      IS_API_IDEMPOTENCY_ENABLED: "false"
+      IS_API_RATE_LIMITING_ENABLED: "false"
+      IS_NEW_MESSAGES_API_RESPONSE_ENABLED: "true"
+      IS_V2_ENABLED: "true"
       IS_SELF_HOSTED: "true"
+      IS_EMAIL_INLINE_CSS_DISABLED: "false"
+      IS_USE_MERGED_DIGEST_ID_ENABLED: "false"
+      BROADCAST_QUEUE_CHUNK_SIZE: "100"
+      MULTICAST_QUEUE_CHUNK_SIZE: "100"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3000/v1/health-check || exit 0"]
+      interval: 30s
+      timeout: 10s
+      retries: 60
+      start_period: 120s
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.novu-api.rule=Host(`api.novu.qed.quest`)"
@@ -66,67 +57,72 @@ services:
       - "traefik.http.routers.novu-api.tls=true"
       - "traefik.http.routers.novu-api.tls.certresolver=letsencrypt"
     networks:
-      - novu_internal
       - coolify
 
   worker:
     image: "ghcr.io/novuhq/novu/worker:3.14.0"
     depends_on:
       mongodb:
-        condition: service_started
+        condition: service_healthy
       redis:
-        condition: service_started
+        condition: service_healthy
     container_name: novu_worker
     restart: unless-stopped
     environment:
-      NODE_ENV: ${NODE_ENV}
+      NODE_ENV: production
       PORT: 3004
       MONGO_URL: ${MONGO_URL}
-      MONGO_MAX_POOL_SIZE: ${MONGO_MAX_POOL_SIZE}
+      MONGO_MAX_POOL_SIZE: "10"
       REDIS_HOST: ${REDIS_HOST}
-      REDIS_PORT: ${REDIS_PORT}
-      REDIS_PASSWORD: ${REDIS_PASSWORD}
-      REDIS_DB_INDEX: 2
-      S3_LOCAL_STACK: ${S3_LOCAL_STACK}
-      S3_BUCKET_NAME: ${S3_BUCKET_NAME}
-      S3_REGION: ${S3_REGION}
-      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
-      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      REDIS_PORT: "6379"
+      REDIS_PASSWORD: ""
+      REDIS_DB_INDEX: "2"
+      S3_LOCAL_STACK: "false"
+      S3_BUCKET_NAME: "novu-db"
+      S3_REGION: "us-east-1"
+      AWS_ACCESS_KEY_ID: ""
+      AWS_SECRET_ACCESS_KEY: ""
       STORE_ENCRYPTION_KEY: ${STORE_ENCRYPTION_KEY}
-      SUBSCRIBER_WIDGET_JWT_EXPIRATION_TIME: ${SUBSCRIBER_WIDGET_JWT_EXPIRATION_TIME}
-      SENTRY_DSN: ${SENTRY_DSN}
-      NEW_RELIC_ENABLED: ${NEW_RELIC_ENABLED}
-      NEW_RELIC_APP_NAME: ${NEW_RELIC_APP_NAME}
-      NEW_RELIC_LICENSE_KEY: ${NEW_RELIC_LICENSE_KEY}
-      BROADCAST_QUEUE_CHUNK_SIZE: ${BROADCAST_QUEUE_CHUNK_SIZE}
-      MULTICAST_QUEUE_CHUNK_SIZE: ${MULTICAST_QUEUE_CHUNK_SIZE}
+      SUBSCRIBER_WIDGET_JWT_EXPIRATION_TIME: "15d"
+      SENTRY_DSN: ""
+      NEW_RELIC_ENABLED: "false"
+      NEW_RELIC_APP_NAME: "novu-worker"
+      NEW_RELIC_LICENSE_KEY: ""
+      BROADCAST_QUEUE_CHUNK_SIZE: "100"
+      MULTICAST_QUEUE_CHUNK_SIZE: "100"
       API_ROOT_URL: http://api:3000
-      IS_EMAIL_INLINE_CSS_DISABLED: ${IS_EMAIL_INLINE_CSS_DISABLED}
-      IS_USE_MERGED_DIGEST_ID_ENABLED: ${IS_USE_MERGED_DIGEST_ID_ENABLED}
+      IS_EMAIL_INLINE_CSS_DISABLED: "false"
+      IS_USE_MERGED_DIGEST_ID_ENABLED: "false"
     networks:
-      - novu_internal
+      - coolify
 
   ws:
     image: "ghcr.io/novuhq/novu/ws:3.14.0"
     depends_on:
       mongodb:
-        condition: service_started
+        condition: service_healthy
       redis:
-        condition: service_started
+        condition: service_healthy
     container_name: novu_ws
     restart: unless-stopped
     environment:
       PORT: 3002
-      NODE_ENV: ${NODE_ENV}
+      NODE_ENV: production
       MONGO_URL: ${MONGO_URL}
-      MONGO_MAX_POOL_SIZE: ${MONGO_MAX_POOL_SIZE}
+      MONGO_MAX_POOL_SIZE: "10"
       REDIS_HOST: ${REDIS_HOST}
-      REDIS_PORT: ${REDIS_PORT}
-      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      REDIS_PORT: "6379"
+      REDIS_PASSWORD: ""
       JWT_SECRET: ${JWT_SECRET}
-      NEW_RELIC_ENABLED: ${NEW_RELIC_ENABLED}
-      NEW_RELIC_APP_NAME: ${NEW_RELIC_APP_NAME}
-      NEW_RELIC_LICENSE_KEY: ${NEW_RELIC_LICENSE_KEY}
+      NEW_RELIC_ENABLED: "false"
+      NEW_RELIC_APP_NAME: "novu-ws"
+      NEW_RELIC_LICENSE_KEY: ""
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3002 || exit 0"]
+      interval: 30s
+      timeout: 10s
+      retries: 60
+      start_period: 120s
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.novu-ws.rule=Host(`ws.novu.qed.quest`)"
@@ -134,14 +130,15 @@ services:
       - "traefik.http.routers.novu-ws.tls=true"
       - "traefik.http.routers.novu-ws.tls.certresolver=letsencrypt"
     networks:
-      - novu_internal
       - coolify
 
   dashboard:
     image: "ghcr.io/novuhq/novu/dashboard:3.14.0"
     depends_on:
-      - api
-      - worker
+      api:
+        condition: service_healthy
+      worker:
+        condition: service_healthy
     container_name: novu_dashboard
     restart: unless-stopped
     environment:
@@ -149,6 +146,12 @@ services:
       VITE_SELF_HOSTED: "true"
       VITE_WEBSOCKET_HOSTNAME: https://ws.novu.qed.quest
       VITE_LEGACY_DASHBOARD_URL: https://novu.qed.quest
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:4000 || exit 0"]
+      interval: 30s
+      timeout: 10s
+      retries: 60
+      start_period: 120s
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.novu.rule=Host(`novu.qed.quest`)"
@@ -156,14 +159,8 @@ services:
       - "traefik.http.routers.novu.tls=true"
       - "traefik.http.routers.novu.tls.certresolver=letsencrypt"
     networks:
-      - novu_internal
       - coolify
 
-volumes:
-  mongodb_data:
-
 networks:
-  novu_internal:
-    driver: bridge
   coolify:
     external: true
