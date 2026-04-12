@@ -4,11 +4,6 @@ services:
     image: "redis:alpine"
     container_name: novu_redis
     restart: unless-stopped
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "50m"
-        max-file: "5"
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
@@ -21,11 +16,6 @@ services:
     image: mongo:8.0.17
     container_name: novu_mongodb
     restart: unless-stopped
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "50m"
-        max-file: "5"
     environment:
       - MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}
       - MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
@@ -35,8 +25,8 @@ services:
       test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping').ok"]
       interval: 10s
       timeout: 5s
-      retries: 6
-      start_period: 30s
+      retries: 10
+      start_period: 60s
     networks:
       - novu_internal
 
