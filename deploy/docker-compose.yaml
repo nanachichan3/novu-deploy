@@ -26,6 +26,8 @@ services:
       - redis
     container_name: novu_api
     restart: unless-stopped
+    ports:
+      - "${API_PORT}:${API_PORT}"
     environment:
       NODE_ENV: ${NODE_ENV}
       API_ROOT_URL: ${API_ROOT_URL}
@@ -102,6 +104,8 @@ services:
       - redis
     container_name: novu_ws
     restart: unless-stopped
+    ports:
+      - "${WS_PORT}:${WS_PORT}"
     environment:
       PORT: ${WS_PORT}
       NODE_ENV: ${NODE_ENV}
@@ -124,6 +128,8 @@ services:
       - worker
     container_name: novu_dashboard
     restart: unless-stopped
+    ports:
+      - "4000:4000"
     environment:
       VITE_API_HOSTNAME: ${VITE_API_HOSTNAME}
       VITE_SELF_HOSTED: "true"
