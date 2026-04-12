@@ -22,8 +22,10 @@ services:
   api:
     image: "ghcr.io/novuhq/novu/api:3.14.0"
     depends_on:
-      - mongodb
-      - redis
+      mongodb:
+        condition: service_started
+      redis:
+        condition: service_started
     container_name: novu_api
     restart: unless-stopped
     environment:
@@ -57,12 +59,6 @@ services:
       IS_NEW_MESSAGES_API_RESPONSE_ENABLED: ${IS_NEW_MESSAGES_API_RESPONSE_ENABLED}
       IS_V2_ENABLED: ${IS_V2_ENABLED}
       IS_SELF_HOSTED: "true"
-    healthcheck:
-      test: ["CMD-SHELL", "nc -z localhost 3000 || wget -qO- http://localhost:3000 >/dev/null 2>&1 || exit 0"]
-      interval: 30s
-      timeout: 15s
-      retries: 120
-      start_period: 300s
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.novu-api.rule=Host(`api.novu.qed.quest`)"
@@ -76,8 +72,10 @@ services:
   worker:
     image: "ghcr.io/novuhq/novu/worker:3.14.0"
     depends_on:
-      - mongodb
-      - redis
+      mongodb:
+        condition: service_started
+      redis:
+        condition: service_started
     container_name: novu_worker
     restart: unless-stopped
     environment:
@@ -111,8 +109,10 @@ services:
   ws:
     image: "ghcr.io/novuhq/novu/ws:3.14.0"
     depends_on:
-      - mongodb
-      - redis
+      mongodb:
+        condition: service_started
+      redis:
+        condition: service_started
     container_name: novu_ws
     restart: unless-stopped
     environment:
@@ -127,12 +127,6 @@ services:
       NEW_RELIC_ENABLED: ${NEW_RELIC_ENABLED}
       NEW_RELIC_APP_NAME: ${NEW_RELIC_APP_NAME}
       NEW_RELIC_LICENSE_KEY: ${NEW_RELIC_LICENSE_KEY}
-    healthcheck:
-      test: ["CMD-SHELL", "nc -z localhost 3002 || exit 0"]
-      interval: 30s
-      timeout: 10s
-      retries: 120
-      start_period: 300s
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.novu-ws.rule=Host(`ws.novu.qed.quest`)"
@@ -155,12 +149,6 @@ services:
       VITE_SELF_HOSTED: "true"
       VITE_WEBSOCKET_HOSTNAME: https://ws.novu.qed.quest
       VITE_LEGACY_DASHBOARD_URL: https://novu.qed.quest
-    healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:4000 >/dev/null 2>&1 || exit 0"]
-      interval: 30s
-      timeout: 10s
-      retries: 120
-      start_period: 300s
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.novu.rule=Host(`novu.qed.quest`)"
