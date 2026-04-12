@@ -17,15 +17,15 @@ services:
     container_name: novu_mongodb
     restart: unless-stopped
     environment:
-      - MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}
-      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
     volumes:
       - mongodb_data:/data/db
     healthcheck:
-      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping').ok"]
+      test: ["CMD", "mongosh", "--username", "$${MONGO_INITDB_ROOT_USERNAME}", "--password", "$${MONGO_INITDB_ROOT_PASSWORD}", "--authenticationDatabase", "admin", "--eval", "db.adminCommand('ping').ok"]
       interval: 10s
       timeout: 5s
-      retries: 10
+      retries: 12
       start_period: 60s
     networks:
       - novu_internal
@@ -51,8 +51,6 @@ services:
       REDIS_PORT: ${REDIS_PORT}
       REDIS_PASSWORD: ${REDIS_PASSWORD}
       REDIS_DB_INDEX: 2
-      REDIS_CACHE_SERVICE_HOST: ${REDIS_CACHE_SERVICE_HOST}
-      REDIS_CACHE_SERVICE_PORT: ${REDIS_CACHE_SERVICE_PORT}
       S3_LOCAL_STACK: ${S3_LOCAL_STACK}
       S3_BUCKET_NAME: ${S3_BUCKET_NAME}
       S3_REGION: ${S3_REGION}
@@ -93,8 +91,6 @@ services:
       REDIS_PORT: ${REDIS_PORT}
       REDIS_PASSWORD: ${REDIS_PASSWORD}
       REDIS_DB_INDEX: 2
-      REDIS_CACHE_SERVICE_HOST: ${REDIS_CACHE_SERVICE_HOST}
-      REDIS_CACHE_SERVICE_PORT: ${REDIS_CACHE_SERVICE_PORT}
       S3_LOCAL_STACK: ${S3_LOCAL_STACK}
       S3_BUCKET_NAME: ${S3_BUCKET_NAME}
       S3_REGION: ${S3_REGION}
