@@ -21,6 +21,8 @@ services:
     image: mongo:8.0.17
     container_name: novu_mongodb
     restart: unless-stopped
+    mem_limit: 1g
+    mem_reservation: 256m
     logging:
       driver: "json-file"
       options:
@@ -40,9 +42,9 @@ services:
     image: "ghcr.io/novuhq/novu/api:3.15.0"
     depends_on:
       mongodb:
-        condition: service_healthy
+        condition: service_started
       redis:
-        condition: service_healthy
+        condition: service_started
     container_name: novu_api
     restart: unless-stopped
     logging:
@@ -105,9 +107,9 @@ services:
     image: "ghcr.io/novuhq/novu/worker:3.15.0"
     depends_on:
       mongodb:
-        condition: service_healthy
+        condition: service_started
       redis:
-        condition: service_healthy
+        condition: service_started
     container_name: novu_worker
     restart: unless-stopped
     logging:
@@ -157,9 +159,9 @@ services:
     image: "ghcr.io/novuhq/novu/ws:3.15.0"
     depends_on:
       mongodb:
-        condition: service_healthy
+        condition: service_started
       redis:
-        condition: service_healthy
+        condition: service_started
     container_name: novu_ws
     restart: unless-stopped
     logging:
@@ -195,9 +197,9 @@ services:
     image: "ghcr.io/novuhq/novu/dashboard:3.15.0"
     depends_on:
       api:
-        condition: service_healthy
+        condition: service_started
       worker:
-        condition: service_healthy
+        condition: service_started
     container_name: novu_dashboard
     restart: unless-stopped
     logging:
