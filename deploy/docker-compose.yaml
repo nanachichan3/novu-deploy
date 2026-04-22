@@ -224,4 +224,5 @@ volumes:
 
 networks:
   coolify:
-    external: true
+    name: coolify
+    external: false
