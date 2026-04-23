@@ -24,7 +24,7 @@ services:
     networks:
       - coolify
     healthcheck:
-      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider localhost:27017 || exit 1"]
+      test: ["CMD-SHELL", "nc -z localhost 27017 && echo 'MongoDB port open'"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -39,7 +39,7 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-    command: bash -c "i=0; until mongosh --quiet --username novuadmin --password novuadmin123 --eval 'db.adminCommand(\"ping\").ok' mongodb://mongodb:27017/novu-db?authSource=admin 2>/dev/null || [ $i -gt 30 ]; do echo 'Waiting for MongoDB...'; sleep 2; i=$((i+1)); done; echo 'Starting API...'; node dist/main.js"
+    command: bash -c "i=0; until nc -z mongodb 27017 && echo 'MongoDB ready' && break || [ $i -gt 30 ]; do echo 'Waiting for MongoDB...'; sleep 2; i=$((i+1)); done; node dist/main.js"
     environment:
       NODE_ENV: production
       API_ROOT_URL: https://api.novu.qed.quest
@@ -75,12 +75,6 @@ services:
       IS_SELF_HOSTED: "true"
     networks:
       - coolify
-    healthcheck:
-      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider localhost:3000 || exit 1"]
-      interval: 15s
-      timeout: 10s
-      retries: 5
-      start_period: 60s
 
   worker:
     image: ghcr.io/novuhq/novu/worker:3.13.0
@@ -91,7 +85,7 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-    command: bash -c "i=0; until mongosh --quiet --username novuadmin --password novuadmin123 --eval 'db.adminCommand(\"ping\").ok' mongodb://mongodb:27017/novu-db?authSource=admin 2>/dev/null || [ $i -gt 30 ]; do echo 'Waiting for MongoDB...'; sleep 2; i=$((i+1)); done; echo 'Starting Worker...'; node dist/main.js"
+    command: bash -c "i=0; until nc -z mongodb 27017 && echo 'MongoDB ready' && break || [ $i -gt 30 ]; do echo 'Waiting for MongoDB...'; sleep 2; i=$((i+1)); done; node dist/main.js"
     environment:
       NODE_ENV: production
       PORT: "3004"
@@ -131,7 +125,7 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-    command: bash -c "i=0; until mongosh --quiet --username novuadmin --password novuadmin123 --eval 'db.adminCommand(\"ping\").ok' mongodb://mongodb:27017/novu-db?authSource=admin 2>/dev/null || [ $i -gt 30 ]; do echo 'Waiting for MongoDB...'; sleep 2; i=$((i+1)); done; echo 'Starting Socket...'; node dist/main.js"
+    command: bash -c "i=0; until nc -z mongodb 27017 && echo 'MongoDB ready' && break || [ $i -gt 30 ]; do echo 'Waiting for MongoDB...'; sleep 2; i=$((i+1)); done; node dist/main.js"
     environment:
       PORT: "3002"
       NODE_ENV: production
@@ -153,7 +147,7 @@ services:
     restart: always
     depends_on:
       api:
-        condition: service_healthy
+        condition: service_started
     environment:
       VITE_API_HOSTNAME: https://api.novu.qed.quest
       VITE_WEBSOCKET_HOSTNAME: wss://api.novu.qed.quest
