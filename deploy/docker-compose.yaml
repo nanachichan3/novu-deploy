@@ -20,6 +20,9 @@ services:
       - coolify
 
   api:
+    depends_on:
+      - mongodb
+      - redis
     image: ghcr.io/novuhq/novu/api:3.13.0
     container_name: novu_api
     restart: unless-stopped
@@ -60,6 +63,9 @@ services:
       - coolify
 
   worker:
+    depends_on:
+      - mongodb
+      - redis
     image: ghcr.io/novuhq/novu/worker:3.13.0
     container_name: novu_worker
     restart: unless-stopped
@@ -94,6 +100,9 @@ services:
       - coolify
 
   ws:
+    depends_on:
+      - mongodb
+      - redis
     image: ghcr.io/novuhq/novu/ws:3.13.0
     container_name: novu_ws
     restart: unless-stopped
