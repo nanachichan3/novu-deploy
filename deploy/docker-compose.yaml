@@ -26,7 +26,7 @@ services:
     healthcheck:
       test:
         - CMD-SHELL
-        - mongosh --quiet --username novuadmin --password novuadmin123 --eval "db.adminCommand('ping').ok"
+        - wget --no-verbose --tries=1 --spider localhost:27017 || exit 1
       interval: 20s
       timeout: 10s
       retries: 5
