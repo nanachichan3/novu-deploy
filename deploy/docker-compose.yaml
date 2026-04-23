@@ -68,11 +68,7 @@ services:
       IS_SELF_HOSTED: '${IS_SELF_HOSTED}'
     labels:
       - traefik.enable=true
-      - traefik.http.routers.novu-api.rule=Host(`api.novu.qed.quest`)
-      - traefik.http.services.novu-api.loadbalancer.server.port=3001
-      - traefik.http.routers.novu-api.tls=true
-      - traefik.http.routers.novu-api.tls.certresolver=letsencrypt
-    networks:
+      -       -       -       -     networks:
       - coolify
     healthcheck:
       disable: true
