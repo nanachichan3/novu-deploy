@@ -13,205 +13,192 @@ services:
       - coolify
 
   mongodb:
-    image: mongo:7.0
+    image: mongo:8.0.17
     container_name: novu_mongodb
     restart: unless-stopped
     environment:
-      MONGO_INITDB_ROOT_USERNAME: root
-      MONGO_INITDB_ROOT_PASSWORD: 627939eeb1ad0f1f05c40dcfd1ff0199
-      MONGO_INITDB_DATABASE: novu-db
+      MONGO_INITDB_ROOT_USERNAME: novuadmin
+      MONGO_INITDB_ROOT_PASSWORD: novuadmin123
     volumes:
-      - novu_mongodb_data:/data/db
-    healthcheck:
-      test: ["CMD-SHELL", "mongosh --eval 'db.adminCommand({ping})' || mongo --eval 'db.adminCommand({ping})'"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+      - mongodb_data:/data/db
     networks:
       - coolify
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - mongosh --quiet --username novuadmin --password novuadmin123 --eval "db.adminCommand('ping').ok"
+      interval: 20s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
 
   api:
-    image: ghcr.io/novuhq/apps/api:0.21.0
+    image: ghcr.io/novuhq/novu/api:3.13.0
+    depends_on:
+      - mongodb
+      - redis
     container_name: novu_api
     restart: unless-stopped
-    depends_on:
-      mongodb:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
     environment:
       NODE_ENV: production
-      PORT: 3001
       API_ROOT_URL: https://api.novu.qed.quest
+      PORT: "3000"
       FRONT_BASE_URL: https://novu.qed.quest
-      MONGO_URL: mongodb://root:627939eeb1ad0f1f05c40dcfd1ff0199@mongodb:27017/novu-db?authSource=admin
-      MONGO_AUTO_CREATE_INDEXES: "true"
-      MONGO_MAX_POOL_SIZE: "100"
+      MONGO_URL: mongodb://novuadmin:novuadmin123@mongodb:27017/novu-db?authSource=admin
+      MONGO_MIN_POOL_SIZE: "5"
+      MONGO_MAX_POOL_SIZE: "10"
       REDIS_HOST: redis
       REDIS_PORT: "6379"
-      REDIS_PASSWORD: f81b200e0c8c35a4e9cd6639efbc93ac
+      REDIS_PASSWORD: ""
       REDIS_DB_INDEX: "2"
       REDIS_CACHE_SERVICE_HOST: redis
       REDIS_CACHE_SERVICE_PORT: "6379"
-      S3_LOCAL_STACK: "true"
-      S3_BUCKET_NAME: novu
+      S3_LOCAL_STACK: "false"
+      S3_BUCKET_NAME: novu-db
       S3_REGION: us-east-1
-      AWS_ACCESS_KEY_ID: localstack
-      AWS_SECRET_ACCESS_KEY: localstack
-      STORE_ENCRYPTION_KEY: 8c1fcc30bdc4d7351702422cd3b70980798258d3066bb03cf1b739eae160a329
+      AWS_ACCESS_KEY_ID: ""
+      AWS_SECRET_ACCESS_KEY: ""
       JWT_SECRET: 841887b064335d22a3b4c7fe15cd7716d2005a307c3d90cbc2e5a6aed3f551d3
+      STORE_ENCRYPTION_KEY: 8c1fcc30bdc4d7351702422cd3b70980798258d3066bb03cf1b739eae160a329
       NOVU_SECRET_KEY: 239b2e26c6b94ab29aaf7754037d7e2a548939cf87eb035bb546fdc18f4ef333
-      API_CONTEXT_PATH: /api
-      IS_SELF_HOSTED: "true"
-      IS_EMAIL_INLINE_CSS_DISABLED: "false"
-      IS_USE_MERGED_DIGEST_ID_ENABLED: "true"
+      SUBSCRIBER_WIDGET_JWT_EXPIRATION_TIME: 15d
+      SENTRY_DSN: ""
+      NEW_RELIC_ENABLED: "false"
+      NEW_RELIC_APP_NAME: novu-api
+      NEW_RELIC_LICENSE_KEY: ""
+      MONGO_AUTO_CREATE_INDEXES: "true"
       IS_API_IDEMPOTENCY_ENABLED: "false"
-      IS_API_RATE_LIMITING_ENABLED: "true"
+      IS_API_RATE_LIMITING_ENABLED: "false"
       IS_NEW_MESSAGES_API_RESPONSE_ENABLED: "true"
       IS_V2_ENABLED: "true"
-      BROADCAST_QUEUE_CHUNK_SIZE: "50"
-      MULTICAST_QUEUE_CHUNK_SIZE: "50"
-      NEW_RELIC_ENABLED: "false"
-      SENTRY_DSN: ""
-      NEW_RELIC_APP_NAME: ""
-      NEW_RELIC_LICENSE_KEY: ""
-    networks:
-      - coolify
-
-
-  worker:
-    image: ghcr.io/novuhq/apps/api:0.21.0
-    container_name: novu_worker
-    restart: unless-stopped
-    command: worker
-    depends_on:
-      mongodb:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-      api:
-        condition: service_healthy
-    environment:
-      NODE_ENV: production
-      PORT: 3004
-      MONGO_URL: mongodb://root:627939eeb1ad0f1f05c40dcfd1ff0199@mongodb:27017/novu-db?authSource=admin
-      MONGO_MAX_POOL_SIZE: "100"
-      REDIS_HOST: redis
-      REDIS_PORT: "6379"
-      REDIS_PASSWORD: f81b200e0c8c35a4e9cd6639efbc93ac
-      REDIS_DB_INDEX: "2"
-      REDIS_CACHE_SERVICE_HOST: redis
-      REDIS_CACHE_SERVICE_PORT: "6379"
-      JWT_SECRET: 841887b064335d22a3b4c7fe15cd7716d2005a307c3d90cbc2e5a6aed3f551d3
       IS_SELF_HOSTED: "true"
-      IS_EMAIL_INLINE_CSS_DISABLED: "false"
-      IS_USE_MERGED_DIGEST_ID_ENABLED: "true"
-      BROADCAST_QUEUE_CHUNK_SIZE: "50"
-      MULTICAST_QUEUE_CHUNK_SIZE: "50"
-      NEW_RELIC_ENABLED: "false"
-      SENTRY_DSN: ""
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.novu-api.rule=Host(`api.novu.qed.quest`)
+      - traefik.http.services.novu-api.loadbalancer.server.port=3000
+      - traefik.http.routers.novu-api.tls=true
+      - traefik.http.routers.novu-api.tls.certresolver=letsencrypt
     networks:
       - coolify
     healthcheck:
-      test: ["CMD-SHELL", "curl -s --max-time 5 http://localhost:3004/ || exit 1"]
-      interval: 15s
-      timeout: 5s
+      test:
+        - CMD-SHELL
+        - wget --no-verbose --tries=1 --spider http://localhost:3000/v1/health-check || exit 1
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  worker:
+    image: ghcr.io/novuhq/novu/worker:3.13.0
+    depends_on:
+      - mongodb
+      - redis
+    container_name: novu_worker
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: "3004"
+      MONGO_URL: mongodb://novuadmin:novuadmin123@mongodb:27017/novu-db?authSource=admin
+      MONGO_MAX_POOL_SIZE: "10"
+      REDIS_HOST: redis
+      REDIS_PORT: "6379"
+      REDIS_PASSWORD: ""
+      REDIS_DB_INDEX: "2"
+      REDIS_CACHE_SERVICE_HOST: redis
+      REDIS_CACHE_SERVICE_PORT: "6379"
+      S3_LOCAL_STACK: "false"
+      S3_BUCKET_NAME: novu-db
+      S3_REGION: us-east-1
+      AWS_ACCESS_KEY_ID: ""
+      AWS_SECRET_ACCESS_KEY: ""
+      STORE_ENCRYPTION_KEY: 8c1fcc30bdc4d7351702422cd3b70980798258d3066bb03cf1b739eae160a329
+      SUBSCRIBER_WIDGET_JWT_EXPIRATION_TIME: 15d
+      SENTRY_DSN: ""
+      NEW_RELIC_ENABLED: "false"
+      NEW_RELIC_APP_NAME: novu-worker
+      NEW_RELIC_LICENSE_KEY: ""
+      BROADCAST_QUEUE_CHUNK_SIZE: "100"
+      MULTICAST_QUEUE_CHUNK_SIZE: "100"
+      API_ROOT_URL: http://api:3000
+      IS_EMAIL_INLINE_CSS_DISABLED: "false"
+      IS_USE_MERGED_DIGEST_ID_ENABLED: "false"
+    networks:
+      - coolify
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - wget --no-verbose --tries=1 --spider http://localhost:3004/v1/health-check || exit 1
+      interval: 30s
+      timeout: 10s
       retries: 3
       start_period: 60s
 
   ws:
-    image: ghcr.io/novuhq/apps/api:0.21.0
+    image: ghcr.io/novuhq/novu/ws:3.13.0
+    depends_on:
+      - mongodb
+      - redis
     container_name: novu_ws
     restart: unless-stopped
-    command: ws
-    depends_on:
-      redis:
-        condition: service_healthy
-      mongodb:
-        condition: service_healthy
     environment:
-      PORT: 3004
-      DB_INDEX: "2"
+      PORT: "3002"
+      NODE_ENV: production
+      MONGO_URL: mongodb://novuadmin:novuadmin123@mongodb:27017/novu-db?authSource=admin
+      MONGO_MAX_POOL_SIZE: "10"
       REDIS_HOST: redis
       REDIS_PORT: "6379"
-      REDIS_PASSWORD: f81b200e0c8c35a4e9cd6639efbc93ac
-      WS_CONTEXT_PATH: /
-      NODE_ENV: production
-      IS_SELF_HOSTED: "true"
-    networks:
-      - coolify
-
-  web:
-    image: ghcr.io/novuhq/apps/web:0.21.0
-    container_name: novu_web
-    restart: unless-stopped
-    environment:
-      API_HOSTNAME: https://api.novu.qed.quest
-      WEBHOOK_URL: https://novu.qed.quest
-      WIDGET_API_HOSTNAME: https://api.novu.qed.quest
-    networks:
-      - coolify
-
-
-  api-worker:
-    image: ghcr.io/novuhq/apps/api:0.21.0
-    container_name: novu_api_worker
-    restart: unless-stopped
-    command: api-worker
-    depends_on:
-      mongodb:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-    environment:
-      NODE_ENV: production
-      PORT: 3005
-      MONGO_URL: mongodb://root:627939eeb1ad0f1f05c40dcfd1ff0199@mongodb:27017/novu-db?authSource=admin
-      REDIS_HOST: redis
-      REDIS_PORT: "6379"
-      REDIS_PASSWORD: f81b200e0c8c35a4e9cd6639efbc93ac
-      REDIS_DB_INDEX: "2"
-      IS_SELF_HOSTED: "true"
+      REDIS_PASSWORD: ""
+      JWT_SECRET: 841887b064335d22a3b4c7fe15cd7716d2005a307c3d90cbc2e5a6aed3f551d3
       NEW_RELIC_ENABLED: "false"
+      NEW_RELIC_APP_NAME: novu-ws
+      NEW_RELIC_LICENSE_KEY: ""
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.novu-ws.rule=Host(`ws.novu.qed.quest`)
+      - traefik.http.services.novu-ws.loadbalancer.server.port=3002
+      - traefik.http.routers.novu-ws.tls=true
+      - traefik.http.routers.novu-ws.tls.certresolver=letsencrypt
     networks:
       - coolify
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - wget --no-verbose --tries=1 --spider http://localhost:3002/v1/health-check || exit 1
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
 
-  ws-worker:
-    image: ghcr.io/novuhq/apps/api:0.21.0
-    container_name: novu_ws_worker
-    restart: unless-stopped
-    command: ws-worker
+  dashboard:
+    image: ghcr.io/novuhq/novu/dashboard:3.13.0
     depends_on:
-      redis:
-        condition: service_healthy
+      - api
+      - worker
+    container_name: novu_dashboard
+    restart: unless-stopped
     environment:
-      DB_INDEX: "2"
-      REDIS_HOST: redis
-      REDIS_PORT: "6379"
-      REDIS_PASSWORD: f81b200e0c8c35a4e9cd6639efbc93ac
-      NODE_ENV: production
-      IS_SELF_HOSTED: "true"
+      VITE_API_HOSTNAME: https://api.novu.qed.quest
+      VITE_WEBSOCKET_HOSTNAME: wss://api.novu.qed.quest
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.novu.rule=Host(`novu.qed.quest`)
+      - traefik.http.services.novu.loadbalancer.server.port=4000
+      - traefik.http.routers.novu.tls=true
+      - traefik.http.routers.novu.tls.certresolver=letsencrypt
     networks:
       - coolify
-
-  elastic-mail:
-    image: ghcr.io/novuhq/apps/api:0.21.0
-    container_name: novu_elastic_mail
-    restart: unless-stopped
-    command: elastic-mail
-    depends_on:
-      mongodb:
-        condition: service_healthy
-    environment:
-      MONGO_URL: mongodb://root:627939eeb1ad0f1f05c40dcfd1ff0199@mongodb:27017/novu-db?authSource=admin
-      REDIS_HOST: redis
-      REDIS_PORT: "6379"
-      IS_SELF_HOSTED: "true"
-    networks:
-      - coolify
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - node -e "const http = require('http'); const req = http.get({hostname: 'localhost', port: 4000, path: '/', timeout: 5000}, (res) => { process.exit(res.statusCode === 200 ? 0 : 1); }); req.on('error', () => process.exit(1)); req.on('timeout', () => { req.destroy(); process.exit(1); });"
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
 
 volumes:
-  novu_mongodb_data:
+  mongodb_data:
 
 networks:
   coolify:
