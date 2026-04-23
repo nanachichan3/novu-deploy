@@ -215,10 +215,8 @@ services:
       - 'novu_mongodb_data:/data/db'
     healthcheck:
       test:
-        - CMD
-        - mongo
-        - '--eval'
-        - "db.adminCommand('ping')"
+        - CMD-SHELL
+        - 'mongosh --eval "db.adminCommand(\x27ping\x27)" || exit 1'
       interval: 10s
       timeout: 5s
       retries: 5
