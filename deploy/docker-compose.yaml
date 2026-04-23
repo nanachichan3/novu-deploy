@@ -4,7 +4,6 @@ services:
     image: redis:alpine
     container_name: novu_redis
     restart: unless-stopped
-    healthcheck:
       test: ["CMD-SHELL", "redis-cli ping"]
       interval: 10s
       timeout: 5s
@@ -23,7 +22,6 @@ services:
       - mongodb_data:/data/db
     networks:
       - coolify
-    healthcheck:
       test:
         - CMD-SHELL
         - wget --no-verbose --tries=1 --spider localhost:27017 || exit 1
@@ -80,7 +78,6 @@ services:
       - traefik.http.routers.novu-api.tls.certresolver=letsencrypt
     networks:
       - coolify
-    healthcheck:
       test:
         - CMD-SHELL
         - wget --no-verbose --tries=1 --spider http://localhost:3000/v1/health-check || exit 1
@@ -125,7 +122,6 @@ services:
       IS_USE_MERGED_DIGEST_ID_ENABLED: "false"
     networks:
       - coolify
-    healthcheck:
       test:
         - CMD-SHELL
         - wget --no-verbose --tries=1 --spider http://localhost:3004/v1/health-check || exit 1
@@ -161,7 +157,6 @@ services:
       - traefik.http.routers.novu-ws.tls.certresolver=letsencrypt
     networks:
       - coolify
-    healthcheck:
       test:
         - CMD-SHELL
         - wget --no-verbose --tries=1 --spider http://localhost:3002/v1/health-check || exit 1
@@ -188,7 +183,6 @@ services:
       - traefik.http.routers.novu.tls.certresolver=letsencrypt
     networks:
       - coolify
-    healthcheck:
       test:
         - CMD-SHELL
         - node -e "const http = require('http'); const req = http.get({hostname: 'localhost', port: 4000, path: '/', timeout: 5000}, (res) => { process.exit(res.statusCode === 200 ? 0 : 1); }); req.on('error', () => process.exit(1)); req.on('timeout', () => { req.destroy(); process.exit(1); });"
