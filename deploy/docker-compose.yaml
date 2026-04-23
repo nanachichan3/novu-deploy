@@ -23,9 +23,6 @@ services:
     image: ghcr.io/novuhq/novu/api:3.13.0
     container_name: novu_api
     restart: unless-stopped
-    depends_on:
-      - redis
-      - mongodb
     environment:
       NODE_ENV: production
       API_ROOT_URL: https://api.novu.qed.quest
@@ -59,24 +56,13 @@ services:
       IS_NEW_MESSAGES_API_RESPONSE_ENABLED: "true"
       IS_V2_ENABLED: "true"
       IS_SELF_HOSTED: "true"
-    labels:
-      - traefik.enable=true
-      - traefik.http.routers.novu-api.rule=Host(`api.novu.qed.quest`)
-      - traefik.http.services.novu-api.loadbalancer.server.port=3000
-      - traefik.http.routers.novu-api.tls=true
-      - traefik.http.routers.novu-api.tls.certresolver=letsencrypt
     networks:
       - coolify
-    ports:
-      - "3000:3000"
 
   worker:
     image: ghcr.io/novuhq/novu/worker:3.13.0
     container_name: novu_worker
     restart: unless-stopped
-    depends_on:
-      - redis
-      - mongodb
     environment:
       NODE_ENV: production
       PORT: "3004"
@@ -111,9 +97,6 @@ services:
     image: ghcr.io/novuhq/novu/ws:3.13.0
     container_name: novu_socket
     restart: unless-stopped
-    depends_on:
-      - redis
-      - mongodb
     environment:
       PORT: "3002"
       NODE_ENV: production
@@ -136,16 +119,8 @@ services:
     environment:
       VITE_API_HOSTNAME: https://api.novu.qed.quest
       VITE_WEBSOCKET_HOSTNAME: wss://api.novu.qed.quest
-    labels:
-      - traefik.enable=true
-      - traefik.http.routers.novu.rule=Host(`novu.qed.quest`)
-      - traefik.http.services.novu.loadbalancer.server.port=4000
-      - traefik.http.routers.novu.tls=true
-      - traefik.http.routers.novu.tls.certresolver=letsencrypt
     networks:
       - coolify
-    ports:
-      - "4000:4000"
 
 volumes:
   mongodb_data:
