@@ -57,12 +57,7 @@ services:
       IS_NEW_MESSAGES_API_RESPONSE_ENABLED: "true"
       IS_V2_ENABLED: "true"
       IS_SELF_HOSTED: "true"
-    labels:
-      - traefik.enable=true
-      - traefik.http.routers.novu-api.rule=Host(`api.novu.qed.quest`)
-      - traefik.http.services.novu-api.loadbalancer.server.port=3000
-      - traefik.http.routers.novu-api.tls=true
-      - traefik.http.routers.novu-api.tls.certresolver=letsencrypt
+      SERVICE_FQDN_API: api.novu.qed.quest
     networks:
       - coolify
 
@@ -127,12 +122,7 @@ services:
     environment:
       VITE_API_HOSTNAME: https://api.novu.qed.quest
       VITE_WEBSOCKET_HOSTNAME: wss://api.novu.qed.quest
-    labels:
-      - traefik.enable=true
-      - traefik.http.routers.novu.rule=Host(`novu.qed.quest`)
-      - traefik.http.services.novu.loadbalancer.server.port=4000
-      - traefik.http.routers.novu.tls=true
-      - traefik.http.routers.novu.tls.certresolver=letsencrypt
+      SERVICE_FQDN_DASHBOARD: novu.qed.quest
     networks:
       - coolify
 
