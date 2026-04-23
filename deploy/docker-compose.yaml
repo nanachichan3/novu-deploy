@@ -23,7 +23,6 @@ services:
     image: ghcr.io/novuhq/novu/api:3.13.0
     container_name: novu_api
     restart: unless-stopped
-    command: bash -c "for i in $(seq 1 30); do nc -z mongodb 27017 && break; sleep 2; done && node dist/main.js"
     environment:
       NODE_ENV: production
       API_ROOT_URL: https://api.novu.qed.quest
@@ -58,6 +57,7 @@ services:
       IS_V2_ENABLED: "true"
       IS_SELF_HOSTED: "true"
       SERVICE_FQDN_API: api.novu.qed.quest
+      SERVICE_FQDN_DASHBOARD: novu.qed.quest
     networks:
       - coolify
 
@@ -65,7 +65,6 @@ services:
     image: ghcr.io/novuhq/novu/worker:3.13.0
     container_name: novu_worker
     restart: unless-stopped
-    command: bash -c "for i in $(seq 1 30); do nc -z mongodb 27017 && break; sleep 2; done && node dist/main.js"
     environment:
       NODE_ENV: production
       PORT: "3004"
