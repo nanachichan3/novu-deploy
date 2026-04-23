@@ -6,3 +6,131 @@ services:
     restart: unless-stopped
     networks:
       - coolify
+
+  mongodb:
+    image: mongo:8.0.17
+    container_name: novu_mongodb
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: novuadmin
+      MONGO_INITDB_ROOT_PASSWORD: novuadmin123
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - coolify
+
+  api:
+    image: ghcr.io/novuhq/novu/api:3.13.0
+    container_name: novu_api
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      API_ROOT_URL: https://api.novu.qed.quest
+      PORT: 3000
+      FRONT_BASE_URL: https://novu.qed.quest
+      MONGO_URL: mongodb://novuadmin:novuadmin123@mongodb:27017/novu-db?authSource=admin
+      MONGO_MIN_POOL_SIZE: "5"
+      MONGO_MAX_POOL_SIZE: "10"
+      REDIS_HOST: redis
+      REDIS_PORT: "6379"
+      REDIS_PASSWORD: ""
+      REDIS_DB_INDEX: "2"
+      REDIS_CACHE_SERVICE_HOST: redis
+      REDIS_CACHE_SERVICE_PORT: "6379"
+      S3_LOCAL_STACK: "false"
+      S3_BUCKET_NAME: novu-db
+      S3_REGION: us-east-1
+      AWS_ACCESS_KEY_ID: ""
+      AWS_SECRET_ACCESS_KEY: ""
+      JWT_SECRET: 841887b064335d22a3b4c7fe15cd7716d2005a307c3d90cbc2e5a6aed3f551d3
+      STORE_ENCRYPTION_KEY: 8c1fcc30bdc4d7351702422cd3b70980798258d3066bb03cf1b739eae160a329
+      NOVU_SECRET_KEY: 239b2e26c6b94ab29aaf7754037d7e2a548939cf87eb035bb546fdc18f4ef333
+      SUBSCRIBER_WIDGET_JWT_EXPIRATION_TIME: 15d
+      SENTRY_DSN: ""
+      NEW_RELIC_ENABLED: "false"
+      NEW_RELIC_APP_NAME: novu-api
+      NEW_RELIC_LICENSE_KEY: ""
+      MONGO_AUTO_CREATE_INDEXES: "true"
+      IS_API_IDEMPOTENCY_ENABLED: "false"
+      IS_API_RATE_LIMITING_ENABLED: "false"
+      IS_NEW_MESSAGES_API_RESPONSE_ENABLED: "true"
+      IS_V2_ENABLED: "true"
+      IS_SELF_HOSTED: "true"
+    networks:
+      - coolify
+    ports:
+      - "3000:3000"
+
+  worker:
+    image: ghcr.io/novuhq/novu/worker:3.13.0
+    container_name: novu_worker
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: "3004"
+      MONGO_URL: mongodb://novuadmin:novuadmin123@mongodb:27017/novu-db?authSource=admin
+      MONGO_MAX_POOL_SIZE: "10"
+      REDIS_HOST: redis
+      REDIS_PORT: "6379"
+      REDIS_PASSWORD: ""
+      REDIS_DB_INDEX: "2"
+      REDIS_CACHE_SERVICE_HOST: redis
+      REDIS_CACHE_SERVICE_PORT: "6379"
+      S3_LOCAL_STACK: "false"
+      S3_BUCKET_NAME: novu-db
+      S3_REGION: us-east-1
+      AWS_ACCESS_KEY_ID: ""
+      AWS_SECRET_ACCESS_KEY: ""
+      STORE_ENCRYPTION_KEY: 8c1fcc30bdc4d7351702422cd3b70980798258d3066bb03cf1b739eae160a329
+      SUBSCRIBER_WIDGET_JWT_EXPIRATION_TIME: 15d
+      SENTRY_DSN: ""
+      NEW_RELIC_ENABLED: "false"
+      NEW_RELIC_APP_NAME: novu-worker
+      NEW_RELIC_LICENSE_KEY: ""
+      BROADCAST_QUEUE_CHUNK_SIZE: "100"
+      MULTICAST_QUEUE_CHUNK_SIZE: "100"
+      API_ROOT_URL: http://api:3000
+      IS_EMAIL_INLINE_CSS_DISABLED: "false"
+      IS_USE_MERGED_DIGEST_ID_ENABLED: "false"
+    networks:
+      - coolify
+
+  ws:
+    image: ghcr.io/novuhq/novu/ws:3.13.0
+    container_name: novu_ws
+    restart: unless-stopped
+    environment:
+      PORT: "3002"
+      NODE_ENV: production
+      MONGO_URL: mongodb://novuadmin:novuadmin123@mongodb:27017/novu-db?authSource=admin
+      MONGO_MAX_POOL_SIZE: "10"
+      REDIS_HOST: redis
+      REDIS_PORT: "6379"
+      REDIS_PASSWORD: ""
+      JWT_SECRET: 841887b064335d22a3b4c7fe15cd7716d2005a307c3d90cbc2e5a6aed3f551d3
+      NEW_RELIC_ENABLED: "false"
+      NEW_RELIC_APP_NAME: novu-ws
+      NEW_RELIC_LICENSE_KEY: ""
+    networks:
+      - coolify
+    ports:
+      - "3002:3002"
+
+  dashboard:
+    image: ghcr.io/novuhq/novu/dashboard:3.13.0
+    container_name: novu_dashboard
+    restart: unless-stopped
+    environment:
+      VITE_API_HOSTNAME: https://api.novu.qed.quest
+      VITE_WEBSOCKET_HOSTNAME: wss://api.novu.qed.quest
+    networks:
+      - coolify
+    ports:
+      - "4000:4000"
+
+volumes:
+  mongodb_data:
+
+networks:
+  coolify:
+    external: true
