@@ -58,8 +58,6 @@ services:
       IS_SELF_HOSTED: "true"
     networks:
       - coolify
-    ports:
-      - "3000:3000"
 
   worker:
     image: ghcr.io/novuhq/novu/worker:3.13.0
@@ -113,8 +111,6 @@ services:
       NEW_RELIC_LICENSE_KEY: ""
     networks:
       - coolify
-    ports:
-      - "3002:3002"
 
   dashboard:
     image: ghcr.io/novuhq/novu/dashboard:3.13.0
@@ -125,8 +121,6 @@ services:
       VITE_WEBSOCKET_HOSTNAME: wss://api.novu.qed.quest
     networks:
       - coolify
-    ports:
-      - "4000:4000"
 
 volumes:
   mongodb_data:
