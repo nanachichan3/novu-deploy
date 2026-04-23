@@ -1,24 +1,5 @@
 name: novu
 services:
-  redis:
-    image: redis:alpine
-    container_name: novu_redis
-    restart: unless-stopped
-    networks:
-      - coolify
-
-  mongodb:
-    image: mongo:8.0.17
-    container_name: novu_mongodb
-    restart: unless-stopped
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: novuadmin
-      MONGO_INITDB_ROOT_PASSWORD: novuadmin123
-    volumes:
-      - mongodb_data:/data/db
-    networks:
-      - coolify
-
   api:
     image: ghcr.io/novuhq/novu/api:3.13.0
     container_name: novu_api
@@ -146,9 +127,6 @@ services:
       - coolify
     ports:
       - "4000:4000"
-
-volumes:
-  mongodb_data:
 
 networks:
   coolify:
