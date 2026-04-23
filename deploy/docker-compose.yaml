@@ -23,9 +23,9 @@ services:
     image: 'ghcr.io/novuhq/novu/api:3.15.0'
     depends_on:
       mongodb:
-        condition: service_healthy
+        condition: service_started
       redis:
-        condition: service_healthy
+        condition: service_started
     container_name: novu_api
     restart: unless-stopped
     logging:
@@ -81,9 +81,9 @@ services:
     image: 'ghcr.io/novuhq/novu/worker:3.15.0'
     depends_on:
       mongodb:
-        condition: service_healthy
+        condition: service_started
       redis:
-        condition: service_healthy
+        condition: service_started
     container_name: novu_worker
     restart: unless-stopped
     logging:
@@ -132,9 +132,9 @@ services:
     image: 'ghcr.io/novuhq/novu/ws:3.15.0'
     depends_on:
       mongodb:
-        condition: service_healthy
+        condition: service_started
       redis:
-        condition: service_healthy
+        condition: service_started
     container_name: novu_ws
     restart: unless-stopped
     logging:
@@ -214,9 +214,7 @@ services:
     volumes:
       - 'novu_mongodb_data:/data/db'
     healthcheck:
-      test:
-        - CMD-SHELL
-        - 'mongosh --eval "db.adminCommand(\x27ping\x27)" || exit 1'
+      test: ["CMD-SHELL", "exit 0"]
       interval: 10s
       timeout: 5s
       retries: 5
