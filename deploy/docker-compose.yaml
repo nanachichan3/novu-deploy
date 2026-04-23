@@ -77,8 +77,7 @@ services:
       NEW_RELIC_LICENSE_KEY: ""
     networks:
       - coolify
-    ports:
-      - "3001:3001"
+
 
   worker:
     image: ghcr.io/novuhq/apps/api:0.21.0
@@ -152,8 +151,7 @@ services:
       WIDGET_API_HOSTNAME: https://api.novu.qed.quest
     networks:
       - coolify
-    ports:
-      - "3002:3002"
+
 
   api-worker:
     image: ghcr.io/novuhq/apps/api:0.21.0
