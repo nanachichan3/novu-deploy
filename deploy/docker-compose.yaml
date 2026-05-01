@@ -6,6 +6,11 @@ services:
     restart: unless-stopped
     networks:
       - coolify
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   mongodb:
     image: mongo:8.0.17
@@ -18,15 +23,23 @@ services:
       - mongodb_data:/data/db
     networks:
       - coolify
+    healthcheck:
+      test: ["CMD-SHELL", "nc -z localhost 27017 && echo 'MongoDB port open'"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
   api:
     image: ghcr.io/novuhq/novu/api:3.13.0
     container_name: novu_api
     restart: always
     depends_on:
-      - mongodb
-      - redis
-    command: bash -c "i=0; until nc -z mongodb 27017 && echo 'MongoDB ready' && break || [ $i -gt 30 ]; do echo 'Waiting...'; sleep 2; i=$((i+1)); done; node dist/main.js"
+      mongodb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    command: bash -c "i=0; until nc -z mongodb 27017 && echo 'MongoDB ready' && break || [ $i -gt 30 ]; do echo 'Waiting for MongoDB...'; sleep 2; i=$((i+1)); done; node dist/main.js"
     environment:
       NODE_ENV: production
       API_ROOT_URL: https://api.novu.qed.quest
@@ -68,9 +81,11 @@ services:
     container_name: novu_worker
     restart: always
     depends_on:
-      - mongodb
-      - redis
-    command: bash -c "i=0; until nc -z mongodb 27017 && echo 'MongoDB ready' && break || [ $i -gt 30 ]; do echo 'Waiting...'; sleep 2; i=$((i+1)); done; node dist/main.js"
+      mongodb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    command: bash -c "i=0; until nc -z mongodb 27017 && echo 'MongoDB ready' && break || [ $i -gt 30 ]; do echo 'Waiting for MongoDB...'; sleep 2; i=$((i+1)); done; node dist/main.js"
     environment:
       NODE_ENV: production
       PORT: "3004"
@@ -106,8 +121,10 @@ services:
     container_name: novu_socket
     restart: always
     depends_on:
-      - mongodb
-      - redis
+      mongodb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     environment:
       PORT: "3002"
       NODE_ENV: production
@@ -128,7 +145,8 @@ services:
     container_name: novu_dashboard
     restart: always
     depends_on:
-      - api
+      api:
+        condition: service_started
     environment:
       VITE_API_HOSTNAME: https://api.novu.qed.quest
       VITE_WEBSOCKET_HOSTNAME: wss://api.novu.qed.quest
